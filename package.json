@@ -1,0 +1,22 @@
+{
+  "name": "discord-bot-mvp",
+  "version": "1.0.0",
+  "description": "Un bot MVP para Discord inspirado en 0DarkAngel0/Node-Discord-Bot.",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "discord.js",
+    "nodejs"
+  ],
+  "author": "AI Assistant",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5"
+  }
+}
