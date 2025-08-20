@@ -1,0 +1,27 @@
+{
+  "prefix": "!",
+  "defaultLanguage": "es",
+  "embedColor": "#5865F2",
+  "footerText": "Bot Premium Multifuncional",
+  "botVersion": "1.0.0",
+  "supportServer": "https://discord.gg/tuservidordesoporte",
+  "inviteLink": "https://discord.com/oauth2/authorize?client_id=TU_CLIENT_ID&scope=bot&permissions=8",
+  "owners": ["TU_ID_DE_DISCORD"],
+  "logChannels": {
+    "error": "canal-de-errores",
+    "moderation": "canal-de-moderacion",
+    "welcome": "canal-de-bienvenida"
+  },
+  "economy": {
+    "startingBalance": 1000,
+    "dailyAmount": 200,
+    "weeklyAmount": 1000,
+    "workMinAmount": 50,
+    "workMaxAmount": 200
+  },
+  "moderation": {
+    "mutedRole": "Silenciado",
+    "maxWarnings": 3,
+    "autoModEnabled": true
+  }
+}
