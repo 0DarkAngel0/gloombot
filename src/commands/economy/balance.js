@@ -1,75 +1,29 @@
-// Comando para ver el balance de economía
-const { SlashCommandBuilder } = require('discord.js');
-const { createEmbed, formatNumber } = require('../../utils/functions');
+import { SlashCommandBuilder } from 'discord.js';
+import { e } from '../../utils/ui.js';
+import { getGuildSettings } from '../../utils/store.js';
+import { getBalanceFor } from '../../utils/economy.js'; // implementa tu store real
 
-module.exports = {
-  // Definición del comando slash
-  data: new SlashCommandBuilder()
-    .setName('balance')
-    .setDescription('Muestra tu balance actual o el de otro usuario')
-    .addUserOption(option =>
-      option.setName('usuario')
-        .setDescription('Usuario del que quieres ver el balance')
-        .setRequired(false)),
-  
-  // Configuración del comando
+function progress(current, goal = 1000, width = 16) {
+  const ratio = Math.min(1, current / goal);
+  const filled = Math.round(ratio * width);
+  return '▰'.repeat(filled) + '▱'.repeat(Math.max(0, width - filled));
+}
+
+export default {
+  data: new SlashCommandBuilder().setName('balance').setDescription('Muestra tu balance'),
   category: 'economy',
-  cooldown: 5,
-  
-  // Ejecución del comando
-  async execute(client, interaction) {
-    // Obtener el usuario objetivo (el mencionado o el autor del comando)
-    const targetUser = interaction.options.getUser('usuario') || interaction.user;
-    
-    try {
-      // Aquí iría la lógica para obtener el balance del usuario desde la base de datos
-      // Por ahora, usaremos datos de ejemplo
-      
-      // Simulación de obtención de datos (esto se reemplazaría con consultas a la base de datos)
-      const userData = {
-        balance: 1500, // Monedas en el bolsillo
-        bank: 5000,    // Monedas en el banco
-        // Estos valores serían reemplazados por datos reales de la base de datos
-      };
-      
-      // Calcular el total
-      const totalBalance = userData.balance + userData.bank;
-      
-      // Crear embed con la información
-      const embed = createEmbed({
-        title: `💰 Balance de ${targetUser.username}`,
-        thumbnail: targetUser.displayAvatarURL({ dynamic: true }),
-        fields: [
-          {
-            name: '💵 Efectivo',
-            value: `${formatNumber(userData.balance)} monedas`,
-            inline: true
-          },
-          {
-            name: '🏦 Banco',
-            value: `${formatNumber(userData.bank)} monedas`,
-            inline: true
-          },
-          {
-            name: '💎 Total',
-            value: `${formatNumber(totalBalance)} monedas`
-          }
-        ],
-        footer: {
-          text: `Solicitado por ${interaction.user.tag}`,
-          iconURL: interaction.user.displayAvatarURL({ dynamic: true })
-        }
-      });
-      
-      // Responder con el embed
-      await interaction.reply({ embeds: [embed] });
-    } catch (error) {
-      console.error(`Error al obtener el balance: ${error.message}`);
-      
-      await interaction.reply({
-        content: '❌ Ocurrió un error al obtener el balance. Por favor, inténtalo de nuevo más tarde.',
-        ephemeral: true
-      });
-    }
+  async execute({ interaction }) {
+    const guildSettings = getGuildSettings(interaction.guildId);
+    const bal = await getBalanceFor(interaction.user.id, interaction.guildId); // { coins, goal? }
+    const goal = bal.goal ?? 1000;
+    const embed = e(guildSettings)
+      .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
+      .setTitle('Tu balance')
+      .addFields(
+        { name: 'Monedas', value: `${bal.coins} 💰`, inline: true },
+        { name: 'Meta', value: `${goal}`, inline: true },
+        { name: 'Progreso', value: `\`${progress(bal.coins, goal)}\``, inline: false }
+      );
+    await interaction.reply({ embeds: [embed], ephemeral: guildSettings.ephemeral ?? true });
   }
 };
