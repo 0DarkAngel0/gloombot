@@ -1,0 +1,5 @@
+{
+  "name": "Discord Bot Simulator",
+  "description": "An interactive web application that simulates a Discord bot's command interface. Users can type commands and receive responses, including a fun Magic 8-Ball feature powered by the Gemini API.",
+  "requestFramePermissions": []
+}
