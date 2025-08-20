@@ -1,10 +1,10 @@
-# Guía de Despliegue en Render para GloomBot
+# Guía de Despliegue para GloomBot
 
-Esta guía te ayudará a desplegar tu bot de Discord en [Render](https://render.com/), un servicio de hosting en la nube que ofrece un plan gratuito adecuado para bots de Discord.
+Esta guía te ayudará a desplegar tu bot de Discord en diferentes plataformas de hosting en la nube que ofrecen planes gratuitos adecuados para bots de Discord.
 
 ## Requisitos Previos
 
-1. Una cuenta en [Render](https://render.com/)
+1. Una cuenta en [Render](https://render.com/) o [Replit](https://replit.com/)
 2. Una cuenta en [GitHub](https://github.com/) (opcional, pero recomendado)
 3. Tu bot de Discord completamente configurado y funcionando localmente
 
@@ -162,4 +162,160 @@ server.listen(process.env.PORT || 3000);
 
 ---
 
-¡Felicidades! Tu bot de Discord ahora debería estar funcionando en Render. Si encuentras algún problema, consulta la [documentación oficial de Render](https://render.com/docs) o la [documentación de Discord.js](https://discord.js.org/).
+## Despliegue en Replit
+
+Replit es otra excelente opción para alojar tu bot de Discord, especialmente para proyectos más pequeños o en desarrollo.
+
+### Paso 1: Preparar tu Proyecto para Replit
+
+#### Crear archivos de configuración para Replit
+
+Crea un archivo `replit.nix` en la raíz de tu proyecto:
+
+```nix
+{ pkgs }: {
+  deps = [
+    pkgs.nodejs-18_x
+    pkgs.nodePackages.npm
+    pkgs.yarn
+  ];
+}
+```
+
+Crea un archivo `.replit` en la raíz de tu proyecto:
+
+```
+run = "npm start"
+entrypoint = "src/index.js"
+hidden = ["node_modules", ".config"]
+
+[nix]
+channel = "stable-22_11"
+
+[env]
+PATH = "/home/runner/$REPL_SLUG/.config/npm/node_global/bin:/home/runner/$REPL_SLUG/node_modules/.bin"
+NPM_CONFIG_PREFIX = "/home/runner/$REPL_SLUG/.config/npm/node_global"
+
+[packager]
+language = "nodejs"
+
+  [packager.features]
+packageSearch = true
+guessImports = true
+enabledForHosting = false
+
+[languages]
+
+[languages.javascript]
+pattern = "**/{*.js,*.jsx,*.ts,*.tsx}"
+
+  [languages.javascript.languageServer]
+start = "typescript-language-server --stdio"
+
+[deployment]
+run = ["sh", "-c", "npm start"]
+deploymentTarget = "cloudrun"
+```
+
+#### Crear un módulo para mantener el bot activo
+
+Crea un archivo `keep_alive.js` en la carpeta `src/utils/`:
+
+```javascript
+const express = require('express');
+const logger = require('./logger');
+
+function keepAlive() {
+  const app = express();
+  const port = process.env.PORT || 3000;
+
+  app.get('/', (req, res) => {
+    res.send('¡GloomBot está en línea! 🤖');
+  });
+
+  app.listen(port, () => {
+    logger.info(`Servidor web iniciado en el puerto ${port}`);
+  });
+}
+
+module.exports = keepAlive;
+```
+
+#### Actualizar el archivo index.js
+
+Modifica tu archivo `src/index.js` para incluir el módulo keep_alive:
+
+```javascript
+// Importar módulo keep_alive para Replit
+const keepAlive = require('./utils/keep_alive');
+
+// En la función de inicialización
+const init = async () => {
+  try {
+    // Iniciar servidor web para mantener el bot activo en Replit
+    keepAlive();
+    
+    // Resto del código de inicialización...
+  }
+};
+```
+
+### Paso 2: Subir tu Proyecto a Replit
+
+1. Inicia sesión en [Replit](https://replit.com/)
+2. Haz clic en "+ Create Repl"
+3. Selecciona "Import from GitHub"
+4. Pega la URL de tu repositorio de GitHub
+5. Haz clic en "Import from GitHub"
+
+Si no estás usando GitHub, puedes crear un nuevo Repl con Node.js y subir tus archivos manualmente.
+
+### Paso 3: Configurar Variables de Entorno
+
+1. En el panel izquierdo, haz clic en el icono de candado (Secrets)
+2. Añade las siguientes variables:
+   - `TOKEN`: El token de tu bot de Discord
+   - `CLIENT_ID`: El ID de cliente de tu aplicación de Discord
+   - `GUILD_ID`: (Opcional) El ID de tu servidor para pruebas
+   - `MONGODB_URI`: (Opcional) URI de conexión a MongoDB si usas base de datos
+
+### Paso 4: Ejecutar el Bot
+
+1. Haz clic en el botón "Run" en la parte superior
+2. El bot debería iniciar y mostrar un mensaje de confirmación en la consola
+3. El servidor web integrado mantendrá el bot activo
+
+### Paso 5: Mantener el Bot Activo 24/7
+
+1. **Configura UptimeRobot**
+   - Crea una cuenta en [UptimeRobot](https://uptimerobot.com/)
+   - Añade un nuevo monitor de tipo HTTP(s)
+   - Usa la URL de tu Repl (aparece en la ventana del navegador web integrado)
+   - Configura el intervalo de monitoreo a 5 minutos
+
+2. **Habilita "Always On"** (si tienes Replit Hacker Plan)
+   - En la pestaña "Tools" de tu Repl
+   - Activa la opción "Always On"
+
+### Solución de Problemas en Replit
+
+#### El Bot se Desconecta Frecuentemente
+
+- Verifica que UptimeRobot esté configurado correctamente
+- Asegúrate de que el módulo keep_alive esté funcionando
+- Considera actualizar a Replit Hacker Plan para usar "Always On"
+
+#### Errores de Dependencias
+
+- Ejecuta `npm install` manualmente en la consola
+- Verifica que estés usando Node.js v16 o superior
+
+#### Límites de Recursos
+
+- Replit tiene límites de recursos en el plan gratuito
+- Optimiza tu código para usar menos memoria
+- Evita almacenar grandes cantidades de datos en memoria
+
+---
+
+¡Felicidades! Tu bot de Discord ahora debería estar funcionando en Render o Replit. Si encuentras algún problema, consulta la documentación oficial de [Render](https://render.com/docs), [Replit](https://docs.replit.com/) o [Discord.js](https://discord.js.org/).

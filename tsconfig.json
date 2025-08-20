@@ -1,4 +1,9 @@
 {
+  "extends": "./tsconfig.base.json",
+  "files": ["src/**/*"],
+  "ts-node": {
+    "files": true
+  },
   "compilerOptions": {
     "target": "es2022",
     "module": "commonjs",
